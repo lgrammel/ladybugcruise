@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>Cruise of the Ladybug</title>
+
+    <script type="text/javascript"  src="lib/polymaps-2.5.0.min.js"></script>
+    <script type="text/javascript" src="lib/d3-3.1.7.min.js" ></script>
+
+    <script type="text/javascript" src="lib/jquery-1.7.2.min.js" ></script>
+    <script type="text/javascript" src="lib/jquery.qtip.min.js" ></script>
+    <link rel="stylesheet" href="lib/jquery.qtip.min.css" type="text/css" />
+
+    <script type="text/coffeescript" src="ladybugcruise.coffee"></script>
+    <script type="text/javascript" src="lib/coffeescript-1.6.2.min.js"></script>
+
+
+    <style type="text/css">
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            left: 0px;
+            top: 0px;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            overflow: hidden;
+        }
+
+        .location {
+            position: absolute;
+            stroke: black;
+            cursor: pointer;
+        }
+
+        .destination {
+            position: absolute;
+            stroke: black;
+            cursor: pointer;
+        }
+
+        .header {
+            background: #fff;
+            background: rgba(255, 255, 255, 0.7);
+            left: 120px;
+            top: 0px;
+            position: absolute;
+            padding: 10px;
+        }
+
+        .title {
+            font-family: Times, serif;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .description {
+            font-family: Times, serif;
+            font-size: 14px;
+            width: 400px;
+        }
+    </style>
+<body>
+<div id="map"></div>
+<div class="header">
+  <div class="title">Cruise of the Ladybug</div>
+  <div class="description">Click on circles to open blog posts. Use mouse to pan map and mousewheel to zoom.</div>
+</div>
+</body>
+</html>
