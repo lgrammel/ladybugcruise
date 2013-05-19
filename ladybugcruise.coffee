@@ -1,7 +1,11 @@
-resolve = (value,path) ->
-  for element in path.split(".")
-    value = value[element]
-  value
+# tooltip
+tooltip = d3.select("body")
+	.append("div")
+	.style("position", "absolute")
+	.style("z-index", "10")
+	.style("visibility", "hidden")
+  .classed('tooltip', true)
+	.text("a simple tooltip")
 
 # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
 po = org.polymaps
@@ -26,7 +30,7 @@ linearLine = d3.svg.line().x((d) => d.x).y((d) => d.y ).interpolate("linear")
 # layer with additional marks
 referenceLayer = d3.select("#map svg").insert("svg:g");
 
-# 3 reference points
+# 3 reference points (could be moved to separate CSV file)
 referencePoints = [
   {lat: 22.889722, lon: -109.915556, label: "Cabo San Lucas", wikipedia: "http://en.wikipedia.org/wiki/Cabo_San_Lucas"},
   {lat: 18.366667, lon: -114.733333, label: "Clarion Island", wikipedia: "http://en.wikipedia.org/wiki/Clarion_Island"},
@@ -38,6 +42,14 @@ marker.append("circle")
   .attr("r", 10)
   .attr("fill", "#5F9EA0")
   .attr("text", (d) => d.label)
+  .on("mouseover.tooltip", -> tooltip.style("visibility", "visible"))
+  .on("mousemove.tooltip", ->
+    event = d3.event
+    tooltip.style("top", (event.pageY + 15) + "px")
+           .style("left",(event.pageX + 20) + "px")
+           .html(d3.select(this).attr('text'))
+   )
+  .on("mouseout.tooltip", -> tooltip.style("visibility", "hidden"))
   .on("click", (d) => window.open(d.wikipedia ,"_blank"))
 map.on("move", -> referenceLayer.selectAll("g").attr("transform", transform))
 
@@ -57,22 +69,12 @@ referenceLayer.selectAll("g.equator").data(equator).enter()
 map.on("move", -> referenceLayer.selectAll("path").attr("d",  (d) => mappedEquator(d)))
 
 # daily positions
-resultHandler = (json) ->
-  data = resolve(json, "feed.entry").map((location) =>
-    {
-      lat: resolve(location, "gsx$lat.$t"),
-      lon: resolve(location, "gsx$lng.$t"),
-      title: resolve(location, "gsx$title.$t"),
-      day: resolve(location, "gsx$day.$t"),
-      blogpost: resolve(location, "gsx$blogpost.$t"),
-      date: resolve(location, "gsx$date.$t")
-    }
-  )
+resultHandler = (data) ->
 
   # create line
   mappedLine = (d) =>
     cardinalLine(data.map((d) => map.locationPoint(d)))
-  lineLayer = d3.select("#map svg").insert("svg:g");
+  lineLayer = d3.select("#map svg").append("g");
   lineLayer.selectAll("g").data([data]).enter()
     .append("path")
     .attr("fill", "none")
@@ -83,30 +85,28 @@ resultHandler = (json) ->
   map.on("move", -> lineLayer.selectAll("path").attr("d",  (d) => mappedLine(d)))
 
   # Insert our layer beneath the compass.
-  layer = d3.select("#map svg").insert("svg:g")
+  layer = d3.select("#map svg").append("g")
 
   marker = layer.selectAll("g").data(data).enter().append("g")
                 .attr("transform", transform)
+
+  map.on("move", -> layer.selectAll("g").attr("transform", transform))
 
   marker.append("circle")
         .attr("class", "location")
         .attr("r", 4.5)
         .attr("fill", "#FF7F50")
-        .attr("text", (d) => d.day + ": <b>" + d.title + "</b><br/><br/>" + d.date + " Zulu")
+        .attr("text", (d) => d.day + ": <b>" + d.title + "</b><br/>" + d.date + " Zulu")
+        .on("mouseover.tooltip", -> tooltip.style("visibility", "visible"))
+        .on("mousemove.tooltip", ->
+          event = d3.event
+          tooltip.style("top", (event.pageY + 15) + "px")
+                 .style("left",(event.pageX + 20) + "px")
+                 .html(d3.select(this).attr('text'))
+         )
+        .on("mouseout.tooltip", -> tooltip.style("visibility", "hidden"))
         .on("click", (d) => window.open(d.blogpost ,"_blank"))
-
-  map.on("move", ->
-    layer.selectAll("g").attr("transform", transform)
-  )
-
-  $(".location,.destination").qtip({
-    content: {
-      attr: 'text'
-    }
-  })
 
 map.add(po.compass().pan("none"))
 
-do ->
-  d3.json("https://spreadsheets.google.com/feeds/list/t3ptjGRbr63okgAiqSc12tA/od6/public/values?alt=json", resultHandler)
-  # Spreadsheet: https://docs.google.com/spreadsheet/ccc?key=0AgNAl7-WtHbcdDNwdGpHUmJyNjNva2dBaXFTYzEydEE#gid=0
+do -> d3.csv("ladybugcruise.csv", resultHandler)
